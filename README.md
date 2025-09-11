@@ -4,7 +4,7 @@ This repository is based on [robo_dev](https://github.com/dvdmc/robo_dev) and pr
 
 ## Dockerfile
 
-The base of the environment is the **Dockerfile**. Using **docker-compose** (see below), it will get built into a Docker **image**. Then, docker-compose will use that **image** to instantiate a **container** with mapped **volumes**. We then will **attach** a terminal to that container. Everything that you want to install **globally** will be included in the Dockerfile. That's a great way of tracing what you installed in the machine. Anything that is not included in the Dockerfile and is not part of a mapped volume **will be removed when the container is stopped**.
+The base of the environment is the **Dockerfile**. Using **docker-compose** (see below), it will get built into a Docker **image**. Then, docker-compose will use that **image** to instantiate a **container** with mapped **volumes**. We then will **attach** a terminal to that container. Everything that you want to install **persistently** will be included in the Dockerfile or mapped to a volume in the host machine. Anything that is not included in the Dockerfile and is not part of a mapped volume **will be removed when the container is stopped**.
 
 
 ## docker-compose.yaml
@@ -25,21 +25,22 @@ NOTES:
 
 To use GUI applications (e.g. `rqt`, `rviz`, `gazebo`) inside the Docker container, you need to share your display from the host with the container using **X11**.
 
-This works on both Linux and Windows (via Xming or VcXsrv).
+This works on both Linux and Windows (via VcXsrv).
 
 ### On Linux
 
 🔄️**Every time you reboot** make sure to give the right permissions by running
 ```
-xhost +local:root   # or simply xhost +
+xhost +
 ```
 
 ### On windows (using VcXsrv)
 1. Install an X server like [VcXsrv](https://sourceforge.net/projects/vcxsrv/)
 2. Start it with:
     - Set display number to `:0`;
-    - Disable access control (by checking "**disable access control**")
-3. Set `DISPLAY` to `host.docker.internal:0.0` in your `docker-compose.yaml`:
+    - Uncheck `Native opengl`;
+    - Check `Disable access control`;
+3. Set `DISPLAY` to `host.docker.internal:0.0` and `QT_X11_NO_MITSHM` in your `docker-compose.yaml`:
 ```
 environment:
   DISPLAY: host.docker.internal:0.0
@@ -104,12 +105,12 @@ source install/setup.bash
 
 ## 🧵 Tmux and Tmuxinator
 
-In order to multiplex the terminal and allow a clear execution of multiple nodes in different terminals we use [tmux](https://github.com/tmux/tmux/wiki). `tmux` is a terminal multiplexer so you don't have to open a new terminal for each node. It also allows to detach and reconnect, which is very useful for `ssh` remote sessions. You can check a tutorial for tmux (here)[https://hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/]. To simplify things for you, we already include in the Dockerfile two configs for tmux:
+In order to multiplex the terminal and allow a clear execution of multiple nodes in different terminals we use [tmux](https://github.com/tmux/tmux/wiki). `tmux` is a terminal multiplexer so you don't have to open a new terminal for each node. It also allows to detach and reconnect, which is very useful for `ssh` remote sessions. You can check a tutorial for tmux later [here](https://hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/). To simplify things for you, we already include in the Dockerfile two configs for tmux:
 - `set -g mouse on`: enables scroll in tmux
 - `move between panes with alt + arrow keys`: enables moving using arrow keys in tmux
 - `bind | and - to split vertically and horizontally`: enables split in tmux using `|` and `-` instead of `"` and `%`.
 
-In order to configure layours in `tmux` that we can load directly, we use `tmuxinator`. This is used in well-established packages such as [Aerostack2](https://aerostack2.github.io/).
+In order to configure layouts in `tmux` that we can load directly, we will use `tmuxinator`. This is used in well-established packages such as [Aerostack2](https://aerostack2.github.io/).
 You can check the `launch-ws.yaml`used for the tmuxinator execution inside the `ros_package`. The rest of the package is a mockup but empty.
 
 First, navigate to the directory containing your `launch-ws.yaml` configuration file and run:
